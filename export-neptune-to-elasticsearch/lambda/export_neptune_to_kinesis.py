@@ -28,6 +28,7 @@ def pre_trigger():
     print("Started PreTrigger Job")
     host = os.environ['ELASTIC_SEARCH_ENDPOINT'] # cluster endpoint, for example: my-test-domain.us-east-1.es.amazonaws.com
     region = os.environ['AWS_REGION']
+    indexname = os.environ['INDEX_NAME']
     service = 'es'
     credentials = boto3.Session().get_credentials()
     auth = AWSV4SignerAuth(credentials, region, service)
@@ -45,8 +46,12 @@ def pre_trigger():
     response = client.indices.get_alias("*")
     logger.info(response)
 
+    logger.info("Deleting Index Now")    
+    response = client.indices.delete(index=indexname)
+    logger.info(response)
+    
     logger.info("Creating Index Now")
-    index_name = "your_index_name"
+    index_name = indexname
     index_body = {
         "settings": {
             "number_of_shards": 3,
@@ -59,18 +64,9 @@ def pre_trigger():
     logger.info("Listing Indices Now")
     response = client.indices.get_alias("*")
     logger.info(response)
-    
-    logger.info("Deleting Index Now")    
-    response = client.indices.delete(index="your_index_name")
-    logger.info(response)
-    
-    logger.info("Listing Indices Now")
-    response = client.indices.get_alias("*")
-    logger.info(response)
 
 def trigger_neptune_export():
 
-    pre_trigger()
     neptune_export_jar_uri = os.environ['NEPTUNE_EXPORT_JAR_URI']
     neptune_endpoint = os.environ['NEPTUNE_ENDPOINT']
     neptune_port = os.environ['NEPTUNE_PORT']
@@ -122,7 +118,7 @@ def trigger_neptune_export():
             ]
         }
     )
-    
+    pre_trigger()
     return submit_job_response
 
 def lambda_handler(event, context):

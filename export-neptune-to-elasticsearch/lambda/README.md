@@ -23,4 +23,3 @@ To update either lambda function, you can use:
 or
 
 `aws lambda update-function-code --function-name kinesis-to-elasticsearch-<stackId> --zip-file fileb://./target/export-neptune-to-elasticsearch.zip`
-
